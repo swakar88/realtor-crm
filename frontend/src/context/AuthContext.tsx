@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, password: string) => {
         try {
-            // Using /accounts/login/ to match your backend URLs
-            const response = await api.post('/accounts/login/', { email, password });
+            // Using /token/ to match backend URL
+            const response = await api.post('/token/', { username: email, password });
 
             // Handle response (SimpleJWT usually returns access/refresh)
             const { access, refresh } = response.data;
