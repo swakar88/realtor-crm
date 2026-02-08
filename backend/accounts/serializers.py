@@ -9,5 +9,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['organization_id'] = user.organization.id if user.organization else None
         token['role'] = user.role
         token['username'] = user.username
+        token['first_name'] = user.first_name
 
         return token

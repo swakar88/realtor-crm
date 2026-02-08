@@ -160,6 +160,10 @@ REST_FRAMEWORK = {
     )
 }
 
+SIMPLE_JWT = {
+    'TOKEN_OBTAIN_SERIALIZER': 'accounts.serializers.MyTokenObtainPairSerializer',
+}
+
 # EMAIL CONFIGURATION (Development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'localhost'

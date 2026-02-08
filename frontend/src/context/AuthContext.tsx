@@ -10,6 +10,8 @@ interface User {
     user_id: number;
     email: string;
     organization_id?: number;
+    username?: string;
+    first_name?: string;
     exp: number;
 }
 

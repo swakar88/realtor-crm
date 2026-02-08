@@ -49,6 +49,7 @@ export default function LoginPage() {
         setIsLoading(true);
         try {
             await login(values.email, values.password);
+            router.push('/dashboard');
             // Login function handles success toast and redirect
         } catch (error) {
             // Login function handles generic error toast, but we can be specific if needed

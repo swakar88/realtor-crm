@@ -96,7 +96,7 @@ export default function DashboardLayout({
 
                     <div className="flex items-center gap-4">
                         <span className="text-sm font-medium text-slate-600">
-                            Welcome, {user?.email || 'Agent'}
+                            Welcome, {user?.first_name || user?.username || 'Agent'}
                         </span>
                         <div className="bg-primary/10 p-2 rounded-full">
                             <User className="h-5 w-5 text-primary" />
