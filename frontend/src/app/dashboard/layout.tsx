@@ -1,0 +1,114 @@
+"use client";
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import {
+    LayoutDashboard,
+    Building2,
+    Briefcase,
+    Settings,
+    LogOut,
+    User,
+    Calendar
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const { user, logout } = useAuth();
+    const pathname = usePathname();
+
+    const navItems = [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Properties', href: '/dashboard/properties', icon: Building2 },
+        { name: 'Contacts', href: '/dashboard/contacts', icon: User },
+        { name: 'Deals', href: '/dashboard/deals', icon: Briefcase },
+        { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
+        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ];
+
+    return (
+        <div className="flex min-h-screen bg-slate-50">
+            {/* Sidebar */}
+            <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 ease-in-out">
+                <div className="flex h-16 items-center px-6 border-b border-slate-800">
+                    <span className="text-xl font-bold tracking-tight">RealtorCRM</span>
+                </div>
+
+                <nav className="flex-1 px-4 py-6 space-y-1">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.href;
+
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={cn(
+                                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                                    isActive
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                                )}
+                            >
+                                <Icon className="mr-3 h-5 w-5" />
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                <div className="p-4 border-t border-slate-800">
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start text-slate-400 hover:text-red-400 hover:bg-slate-800"
+                        onClick={logout}
+                    >
+                        <LogOut className="mr-3 h-5 w-5" />
+                        Sign Out
+                    </Button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 pl-64 transition-all duration-300">
+                {/* Header */}
+                <header className="sticky top-0 z-40 bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 shadow-sm">
+                    <h1 className="text-lg font-semibold text-slate-800">
+                        {navItems.find(item => item.href === pathname)?.name || 'Dashboard'}
+                    </h1>
+
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-slate-600">
+                            Welcome, {user?.email || 'Agent'}
+                        </span>
+                        <div className="bg-primary/10 p-2 rounded-full">
+                            <User className="h-5 w-5 text-primary" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <div className="p-8 max-w-7xl mx-auto">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+}
