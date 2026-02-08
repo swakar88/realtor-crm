@@ -56,7 +56,7 @@ export function PropertyForm({ onSuccess }: PropertyFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof propertySchema>>({
-        resolver: zodResolver(propertySchema),
+        resolver: zodResolver(propertySchema) as any,
         defaultValues: {
             address: '',
             city: '',

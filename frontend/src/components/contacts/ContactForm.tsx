@@ -51,7 +51,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof contactSchema>>({
-        resolver: zodResolver(contactSchema),
+        resolver: zodResolver(contactSchema) as any,
         defaultValues: {
             first_name: '',
             last_name: '',
