@@ -51,13 +51,9 @@ export default function SignUpPage() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            await register({
-                username: values.email, // using email as username
-                email: values.email,
-                password: values.password,
-                first_name: values.first_name,
-                last_name: values.last_name
-            });
+            // pass arguments separately: (Name, Email, Password)
+            // If your form doesn't have a "name" field yet, we can use the email as the name for now.
+            await register(values.email.split('@')[0], values.email, values.password);
         } catch (error) {
             // Error handled in AuthContext
         } finally {
