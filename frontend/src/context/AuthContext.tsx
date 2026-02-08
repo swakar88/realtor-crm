@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
-import api from '@/lib/api';
+import { jwtDecode } from 'jwt-decode'; // Fixed import name
+import api from '@/lib/api'; // <--- Using your new centralized API file
 import { toast } from 'sonner';
 
 interface User {
@@ -18,7 +18,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (data: any) => Promise<void>;
+    register: (name: string, email: string, password: string) => Promise<void>;
     logout: () => void;
 }
 
@@ -31,11 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
+        // Check for token on load
         const token = localStorage.getItem('access_token');
         if (token) {
             try {
                 const decoded = jwtDecode<User>(token);
-                // Check expiry if needed, though 401 interceptor handles this usually
+                // Check if token is expired
                 if (decoded.exp * 1000 < Date.now()) {
                     logout();
                 } else {
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setIsAuthenticated(true);
                 }
             } catch (error) {
-                console.error("Invalid token", error);
+                console.error("Invalid token on load", error);
                 logout();
             }
         }
@@ -52,7 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await api.post('/token/', { username: email, password });
+            // Using /accounts/login/ to match your backend URLs
+            const response = await api.post('/accounts/login/', { email, password });
+
+            // Handle response (SimpleJWT usually returns access/refresh)
             const { access, refresh } = response.data;
 
             localStorage.setItem('access_token', access);
@@ -63,31 +67,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsAuthenticated(true);
 
             toast.success('Login successful');
-            router.push('/dashboard');
+            router.push('/'); // Go to Dashboard
         } catch (error: any) {
             console.error('Login error:', error);
-            toast.error('Invalid credentials');
+            const msg = error.response?.data?.detail || 'Invalid credentials';
+            toast.error(msg);
             throw error;
         }
     };
 
-    const register = async (data: any) => {
+    const register = async (name: string, email: string, password: string) => {
         try {
-            const response = await api.post('/accounts/register/', data);
-            const { access, refresh } = response.data;
+            await api.post('/accounts/register/', { name, email, password });
 
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-
-            const decoded = jwtDecode<User>(access);
-            setUser(decoded);
-            setIsAuthenticated(true);
-
-            toast.success('Registration successful');
-            router.push('/dashboard');
+            // Auto-login after successful registration
+            await login(email, password);
+            toast.success('Account created successfully');
         } catch (error: any) {
             console.error('Registration error:', error);
-            const msg = error.response?.data?.error || 'Registration failed';
+            // specific error handling for arrays (common in Django)
+            const data = error.response?.data;
+            let msg = 'Registration failed';
+
+            if (data) {
+                // If backend returns { email: ["Invalid email"] }
+                const firstKey = Object.keys(data)[0];
+                if (firstKey && Array.isArray(data[firstKey])) {
+                    msg = `${firstKey}: ${data[firstKey][0]}`;
+                } else if (typeof data === 'string') {
+                    msg = data;
+                } else if (data.detail) {
+                    msg = data.detail;
+                }
+            }
+
             toast.error(msg);
             throw error;
         }
