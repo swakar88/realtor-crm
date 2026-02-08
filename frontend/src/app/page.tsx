@@ -1,7 +1,6 @@
+import { redirect } from 'next/navigation';
+
 export default function Home() {
-    return (
-        <h1 className="text-3xl font-bold underline">
-            Hello World
-        </h1>
-    )
+    // This sends the user straight to the login screen
+    redirect('/login');
 }
