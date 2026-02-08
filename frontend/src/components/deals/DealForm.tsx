@@ -74,7 +74,7 @@ export function DealForm({ onSuccess }: DealFormProps) {
     }, [open]);
 
     const form = useForm<z.infer<typeof dealSchema>>({
-        resolver: zodResolver(dealSchema),
+        resolver: zodResolver(dealSchema) as any,
         defaultValues: {
             stage: 'Prospect',
             value: 0,
