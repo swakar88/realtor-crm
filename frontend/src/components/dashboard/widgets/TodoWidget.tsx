@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { Loader2, Plus, Trash2, CheckSquare } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function TodoWidget({ className }: { className?: string }) {
     const [tasks, setTasks] = useState<Task[]>([]);

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Calendar, Phone, Users, Mail, Clock } from 'lucide-react';
 
 interface Event {
     id: number;
