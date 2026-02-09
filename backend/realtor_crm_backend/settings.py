@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'transactions',
     'analytics',
     'interactions',
+    'deals',
 ]
 
 MIDDLEWARE = [

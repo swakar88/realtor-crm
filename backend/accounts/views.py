@@ -67,3 +67,13 @@ class RegisterView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+from rest_framework import generics
+from rest_framework.permissions import IsAdminUser
+from .serializers import UserListSerializer
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserListSerializer
+    permission_classes = [IsAdminUser]
