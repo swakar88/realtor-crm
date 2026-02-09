@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -69,14 +70,14 @@ export default function DashboardLayout({
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <span className="hidden md:inline text-sm font-medium text-slate-600">
+                    <Link href="/dashboard/settings" className="flex items-center gap-4 hover:bg-gray-100 p-2 rounded-lg transition-colors group">
+                        <span className="hidden md:inline text-sm font-medium text-slate-600 group-hover:text-slate-900">
                             Welcome, {user?.first_name || user?.username || 'Agent'}
                         </span>
-                        <div className="bg-primary/10 p-2 rounded-full">
+                        <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary/20 transition-colors">
                             <User className="h-5 w-5 text-primary" />
                         </div>
-                    </div>
+                    </Link>
                 </header>
 
                 {/* Page Content */}
