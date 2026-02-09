@@ -54,9 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string) => {
+        const normalizedEmail = email.toLowerCase();
         try {
             // Using /token/ to match backend URL
-            const response = await api.post('/token/', { username: email, password });
+            const response = await api.post('/token/', { username: normalizedEmail, password });
 
             // Handle response (SimpleJWT usually returns access/refresh)
             const { access, refresh } = response.data;
@@ -79,11 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const register = async (name: string, email: string, password: string) => {
+        const normalizedEmail = email.toLowerCase();
         try {
-            await api.post('/accounts/register/', { username: name, email, password });
+            await api.post('/accounts/register/', { username: name, email: normalizedEmail, password });
 
             // Auto-login after successful registration
-            await login(email, password);
+            await login(normalizedEmail, password);
             toast.success('Account created successfully');
         } catch (error: any) {
             console.error('Registration error:', error);

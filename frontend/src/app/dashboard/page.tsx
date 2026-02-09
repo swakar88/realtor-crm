@@ -65,43 +65,44 @@ export default function DashboardPage() {
     return (
         <div className="space-y-4">
             {/* Top Metric Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            {/* Top Metric Cards */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+                <Card className="h-full rounded-xl border-none shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-2">
                         <CardTitle className="text-sm font-medium">Total Active Deals</CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.total_active_deals}</div>
+                    <CardContent className="p-5 pt-0">
+                        <div className="text-2xl font-bold text-gray-800">{stats.total_active_deals}</div>
                         <p className="text-xs text-muted-foreground">in pipeline</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full rounded-xl border-none shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-2">
                         <CardTitle className="text-sm font-medium">Closed Volume</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.closed_volume)}</div>
+                    <CardContent className="p-5 pt-0">
+                        <div className="text-2xl font-bold text-primary">{formatCurrency(stats.closed_volume)}</div>
                         <p className="text-xs text-muted-foreground">Year to Date</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="h-full rounded-xl border-none shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-2">
                         <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.win_rate}%</div>
+                    <CardContent className="p-5 pt-0">
+                        <div className="text-2xl font-bold text-gray-800">{stats.win_rate}%</div>
                         <p className="text-xs text-muted-foreground">Conversion</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Charts & Activity */}
-            <div className="grid gap-4 md:grid-cols-12 h-[calc(100vh-220px)]">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3 h-[calc(100vh-220px)]">
                 {/* Bar Chart */}
-                <Card className="col-span-12 md:col-span-6 lg:col-span-6 flex flex-col">
+                <Card className="h-full rounded-xl border-none shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col">
                     <CardHeader>
                         <CardTitle>Deal Funnel</CardTitle>
                     </CardHeader>
@@ -128,7 +129,7 @@ export default function DashboardPage() {
                                 />
                                 <Bar
                                     dataKey="count"
-                                    fill="#2563eb"
+                                    fill="#009f7f"
                                     radius={[4, 4, 0, 0]}
                                     barSize={40}
                                 />
@@ -138,21 +139,21 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Widgets Column (Middle) */}
-                <div className="col-span-12 md:col-span-3 lg:col-span-3 space-y-4">
-                    <div className="h-[48%] max-h-[400px]">
+                <div className="space-y-6 flex flex-col h-full">
+                    <div className="flex-1">
                         <TodoWidget />
                     </div>
-                    <div className="h-[48%] max-h-[400px]">
+                    <div className="flex-1">
                         <ScheduleWidget events={stats.todays_schedule} />
                     </div>
                 </div>
 
                 {/* Recent Activity List */}
-                <Card className="col-span-12 md:col-span-3 lg:col-span-3 flex flex-col">
+                <Card className="h-full rounded-xl border-none shadow-soft transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col">
                     <CardHeader>
                         <CardTitle>Recent Activity</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 overflow-y-auto">
+                    <CardContent className="flex-1 overflow-y-auto p-5 pt-0">
                         <div className="space-y-8">
                             {stats.recent_transactions.length === 0 ? (
                                 <p className="text-sm text-muted-foreground text-center py-10">No recent activity.</p>
@@ -163,7 +164,7 @@ export default function DashboardPage() {
                                             <p className="text-sm font-medium leading-none">{deal.property__address}</p>
                                             <p className="text-xs text-muted-foreground">{deal.stage}</p>
                                         </div>
-                                        <div className="ml-auto font-medium">
+                                        <div className="ml-auto font-medium text-primary">
                                             {deal.stage === 'Closed Won' ? '+' : ''}{formatCurrency(deal.value)}
                                         </div>
                                         <div className="ml-4 text-xs text-gray-400">
