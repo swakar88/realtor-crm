@@ -77,3 +77,30 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserListSerializer
     permission_classes = [IsAdminUser]
+
+
+from django.utils import timezone
+from datetime import timedelta
+from deals.models import Deal
+
+class SystemStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        total_users = User.objects.count()
+        total_deals = Deal.objects.count()
+        
+        # Usage Depth: Deals per User
+        avg_deals = round(total_deals / total_users, 1) if total_users > 0 else 0
+
+        # Recent Growth: Users joined in last 7 days
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        new_users = User.objects.filter(date_joined__gte=seven_days_ago).count()
+
+        return Response({
+            'total_agents': total_users,
+            'total_deals': total_deals,
+            'avg_deals_per_agent': avg_deals,
+            'new_agents_week': new_users
+        })
+
