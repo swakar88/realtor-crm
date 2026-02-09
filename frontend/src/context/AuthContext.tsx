@@ -12,6 +12,7 @@ interface User {
     organization_id?: number;
     username?: string;
     first_name?: string;
+    is_superuser?: boolean;
     exp: number;
 }
 

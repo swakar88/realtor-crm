@@ -25,4 +25,5 @@ class Deal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} - {self.client_name}"
+        client = f"{self.contact.first_name} {self.contact.last_name}" if self.contact else "Unknown Client"
+        return f"{self.title} - {client}"

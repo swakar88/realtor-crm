@@ -1,40 +1,48 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Loader2, TrendingUp, DollarSign, Activity, Calendar as CalendarIcon, ClipboardList, Clock } from 'lucide-react';
 import { TodoWidget } from '@/components/dashboard/widgets/TodoWidget';
 import { ScheduleWidget } from '@/components/dashboard/widgets/ScheduleWidget';
+import { Badge } from "@/components/ui/badge";
 
-interface DashboardStats {
-    total_active_deals: number;
-    closed_volume: number;
-    win_rate: number;
-    deals_by_status: { stage: string; count: number }[];
-    recent_transactions: { id: number; property__address: string; value: number; stage: string; created_at: string }[];
-    todays_schedule: { id: number; title: string; start_time: string; type: 'Call' | 'Meeting' | 'Email' | 'Other' }[];
+import { AddDealModal } from '@/components/dashboard/AddDealModal';
+
+interface Deal {
+    id: number;
+    title: string;
+    client_name: string;
+    value: number;
+    stage: 'NEW' | 'NEGOTIATION' | 'UNDER_CONTRACT' | 'CLOSED_WON' | 'CLOSED_LOST';
+    created_at: string;
 }
 
 export default function DashboardPage() {
-    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const router = useRouter();
+    const [deals, setDeals] = useState<Deal[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+
+    const fetchDeals = async () => {
+        try {
+            const res = await api.get('/api/deals/');
+            setDeals(res.data);
+        } catch (err: any) {
+            if (err.response && err.response.status === 401) {
+                router.push('/login');
+            }
+            console.error("Failed to fetch deals", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const res = await api.get('/dashboard/stats/');
-                setStats(res.data);
-            } catch (err) {
-                setError('Failed to load dashboard data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchStats();
-    }, []);
+        fetchDeals();
+    }, [router]);
 
     if (loading) {
         return (
@@ -44,13 +52,17 @@ export default function DashboardPage() {
         );
     }
 
-    if (error) {
-        return <div className="p-8 text-red-500">{error}</div>;
-    }
+    // Dynamic Calculations
+    const totalPipelineValue = deals.reduce((sum, deal) => sum + Number(deal.value), 0);
+    const activeDealsCount = deals.filter(d => d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST').length;
 
-    if (!stats) return null;
+    // Placeholder for Win Rate (can be improved later)
+    const wonDeals = deals.filter(d => d.stage === 'CLOSED_WON').length;
+    const lostDeals = deals.filter(d => d.stage === 'CLOSED_LOST').length;
+    const closedTotal = wonDeals + lostDeals;
+    const winRate = closedTotal > 0 ? Math.round((wonDeals / closedTotal) * 100) : 0;
 
-    // Safe Formatting Functions
+    // Formatting currency
     const formatCurrency = (val: any) => new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -61,6 +73,24 @@ export default function DashboardPage() {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
+
+    // Helper for badge colors
+    const getStageColor = (stage: string) => {
+        switch (stage) {
+            case 'NEW': return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'NEGOTIATION': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'UNDER_CONTRACT': return 'bg-purple-100 text-purple-800 border-purple-200';
+            case 'CLOSED_WON': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            case 'CLOSED_LOST': return 'bg-red-100 text-red-800 border-red-200';
+            default: return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+    };
+
+    // Calculate Data for Chart
+    const dealsByStage = ['NEW', 'NEGOTIATION', 'UNDER_CONTRACT', 'CLOSED_WON', 'CLOSED_LOST'].map(stage => ({
+        stage: stage.replace('_', ' '),
+        count: deals.filter(d => d.stage === stage).length
+    }));
 
     const cardClass = "bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300";
 
@@ -73,28 +103,28 @@ export default function DashboardPage() {
                 {/* Metric 1 */}
                 <div className={`${cardClass} p-6`}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-gray-800">Total Active Deals</h3>
+                        <h3 className="text-sm font-bold text-gray-800">Total Pipeline Value</h3>
                         <div className="bg-emerald-50 p-2 rounded-full">
-                            <Activity className="h-5 w-5 text-emerald-600" />
+                            <DollarSign className="h-5 w-5 text-emerald-600" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl font-bold text-gray-800">{stats.total_active_deals}</div>
-                        <p className="text-sm text-gray-500 mt-1">in pipeline</p>
+                        <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalPipelineValue)}</div>
+                        <p className="text-sm text-gray-500 mt-1">All Deals</p>
                     </div>
                 </div>
 
                 {/* Metric 2 */}
                 <div className={`${cardClass} p-6`}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-gray-800">Closed Volume</h3>
+                        <h3 className="text-sm font-bold text-gray-800">Active Deals</h3>
                         <div className="bg-emerald-50 p-2 rounded-full">
-                            <DollarSign className="h-5 w-5 text-emerald-600" />
+                            <Activity className="h-5 w-5 text-emerald-600" />
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl font-bold text-emerald-600">{formatCurrency(stats.closed_volume)}</div>
-                        <p className="text-sm text-gray-500 mt-1">Year to Date</p>
+                        <div className="text-2xl font-bold text-gray-800">{activeDealsCount}</div>
+                        <p className="text-sm text-gray-500 mt-1">In Progress</p>
                     </div>
                 </div>
 
@@ -107,8 +137,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div>
-                        <div className="text-2xl font-bold text-gray-800">{stats.win_rate}%</div>
-                        <p className="text-sm text-gray-500 mt-1">Conversion</p>
+                        <div className="text-2xl font-bold text-gray-800">{winRate}%</div>
+                        <p className="text-sm text-gray-500 mt-1">Closed Deals</p>
                     </div>
                 </div>
             </div>
@@ -124,13 +154,14 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats.deals_by_status}>
+                            <BarChart data={dealsByStage}>
                                 <XAxis
                                     dataKey="stage"
                                     stroke="#9ca3af"
-                                    fontSize={12}
+                                    fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
+                                    interval={0}
                                 />
                                 <YAxis
                                     stroke="#9ca3af"
@@ -160,39 +191,36 @@ export default function DashboardPage() {
                     <div className="flex-1">
                         <TodoWidget className={`${cardClass} border-none shadow-none`} />
                     </div>
-                    {/* Schedule Widget */}
+                    {/* Schedule Widget - Passing empty for now as requested to focus on Deals */}
                     <div className="flex-1">
-                        <ScheduleWidget events={stats.todays_schedule} className={`${cardClass} border-none shadow-none`} />
+                        <ScheduleWidget events={[]} className={`${cardClass} border-none shadow-none`} />
                     </div>
                 </div>
 
-                {/* Column 3: Recent Activity */}
+                {/* Column 3: Recent Activity (Deals List) */}
                 <div className={`${cardClass} p-6 flex flex-col h-full`}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-gray-800">Recent Activity</h3>
-                        <ClipboardList className="h-5 w-5 text-gray-400" />
+                        <h3 className="text-sm font-bold text-gray-800">Recent Deals</h3>
+                        <AddDealModal onSuccess={fetchDeals} />
                     </div>
                     <div className="flex-1 overflow-y-auto pr-2">
-                        <div className="space-y-6">
-                            {stats.recent_transactions.length === 0 ? (
-                                <p className="text-sm text-gray-400 text-center py-10">No recent activity.</p>
+                        <div className="space-y-4">
+                            {deals.length === 0 ? (
+                                <p className="text-sm text-gray-400 text-center py-10">No deals found.</p>
                             ) : (
-                                stats.recent_transactions.map((deal) => (
-                                    <div key={deal.id} className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center mr-4">
-                                            <DollarSign className="h-5 w-5 text-emerald-600" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{deal.property__address}</p>
-                                            <p className="text-xs text-gray-500">{deal.stage}</p>
-                                        </div>
-                                        <div className="text-right ml-4">
-                                            <p className="text-sm font-bold text-emerald-600">
-                                                {deal.stage === 'Closed Won' ? '+' : ''}{formatCurrency(deal.value)}
+                                deals.slice(0, 5).map((deal) => (
+                                    <div key={deal.id} className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors group">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <p className="text-sm font-semibold text-gray-900 truncate pr-2">{deal.title}</p>
+                                            <p className="text-sm font-bold text-emerald-600 whitespace-nowrap">
+                                                {formatCurrency(deal.value)}
                                             </p>
-                                            <p className="text-xs text-gray-400">
-                                                {formatDate(deal.created_at)}
-                                            </p>
+                                        </div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <p className="text-xs text-gray-500">{deal.client_name}</p>
+                                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${getStageColor(deal.stage)}`}>
+                                                {deal.stage.replace('_', ' ')}
+                                            </Badge>
                                         </div>
                                     </div>
                                 ))

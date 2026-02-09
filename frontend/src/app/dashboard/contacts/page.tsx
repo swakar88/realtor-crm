@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import { Contact } from '@/types';
-import { ContactForm } from '@/components/contacts/ContactForm';
-import { Loader2, MoreVertical, Mail, Phone } from 'lucide-react';
+import { Loader2, Search, User, Phone, Mail } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -12,148 +13,145 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface Contact {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    role: string;
+    created_at: string;
+}
 
 export default function ContactsPage() {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    const fetchContacts = async () => {
-        setLoading(true);
-        try {
-            const response = await api.get('/contacts/');
-            setContacts(response.data);
-            setError('');
-        } catch (err) {
-            console.error("Failed to fetch contacts", err);
-            setError("Failed to load contacts.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        fetchContacts();
-    }, []);
+        if (!authLoading) {
+            if (!user) {
+                router.push('/login');
+                return;
+            }
 
-    const getInitials = (first: string, last: string) => {
-        return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
-    };
-
-    const getRoleColor = (role: string) => {
-        switch (role) {
-            case 'Buyer': return 'default'; // primary
-            case 'Seller': return 'secondary';
-            case 'Agent': return 'outline';
-            default: return 'outline';
+            const fetchContacts = async () => {
+                try {
+                    // /api/contacts/ is registered in transactions/urls.py via router.register(r'contacts', ...) 
+                    // and included in project urls via path('api/', include('transactions.urls')) ?
+                    // Wait, transactions/urls.py has router.register(r'contacts'). 
+                    // If included at /api/, then it is /api/contacts/
+                    const res = await api.get('/api/contacts/');
+                    setContacts(res.data);
+                } catch (error) {
+                    console.error("Failed to fetch contacts", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchContacts();
         }
-    };
+    }, [user, authLoading, router]);
 
-    if (loading && contacts.length === 0) {
+    if (authLoading || loading) {
         return (
             <div className="flex h-[50vh] w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
             </div>
         );
     }
 
+    const filteredContacts = contacts.filter(c =>
+        c.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Contacts</h2>
-                    <p className="text-muted-foreground">
-                        Manage your buyers, sellers, and network.
-                    </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Contacts</h1>
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                    <Input
+                        placeholder="Search contacts..."
+                        className="pl-8 bg-white"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-                <ContactForm onSuccess={fetchContacts} />
             </div>
 
-            {error && <div className="text-red-500">{error}</div>}
-
-            <div className="rounded-md border bg-white shadow-sm">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Contact Info</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead className="w-[80px]"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {contacts.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    No contacts found. Add one to get started.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            contacts.map((contact) => (
-                                <TableRow key={contact.id} className="hover:bg-slate-50">
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center space-x-4">
-                                            <Avatar>
-                                                <AvatarFallback>{getInitials(contact.first_name, contact.last_name)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="text-sm font-medium leading-none">{contact.first_name} {contact.last_name}</p>
-                                                <p className="text-xs text-muted-foreground">{contact.email}</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col space-y-1 text-sm">
-                                            <span className="flex items-center text-muted-foreground">
-                                                <Mail className="mr-2 h-3 w-3" /> {contact.email}
-                                            </span>
-                                            <span className="flex items-center text-muted-foreground">
-                                                <Phone className="mr-2 h-3 w-3" /> {contact.phone}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={getRoleColor(contact.role) as any}>
-                                            {contact.role}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <span className="sr-only">Open menu</span>
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(contact.email)}>
-                                                    Copy Email
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
+            <Card className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <CardHeader className="bg-gray-50 border-b border-gray-100 py-4">
+                    <div className="flex items-center gap-2 text-emerald-700">
+                        <User className="h-5 w-5" />
+                        <CardTitle className="text-lg font-semibold text-gray-800">Client Directory</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                    <TableHead className="font-bold text-gray-700">Name</TableHead>
+                                    <TableHead className="font-bold text-gray-700">Role</TableHead>
+                                    <TableHead className="font-bold text-gray-700">Email</TableHead>
+                                    <TableHead className="font-bold text-gray-700">Phone</TableHead>
+                                    <TableHead className="font-bold text-gray-700">Added</TableHead>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredContacts.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                                            No contacts found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredContacts.map((contact) => (
+                                        <TableRow key={contact.id} className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
+                                            <TableCell className="font-semibold text-gray-800">
+                                                {contact.first_name} {contact.last_name}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className={`
+                                                    ${contact.role === 'Buyer' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
+                                                    ${contact.role === 'Seller' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
+                                                    ${contact.role === 'Agent' ? 'bg-purple-50 text-purple-700 border-purple-200' : ''}
+                                                `}>
+                                                    {contact.role}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-gray-600">
+                                                <div className="flex items-center gap-2">
+                                                    <Mail className="h-3 w-3 text-gray-400" />
+                                                    {contact.email}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-gray-600">
+                                                <div className="flex items-center gap-2">
+                                                    <Phone className="h-3 w-3 text-gray-400" />
+                                                    {contact.phone}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-gray-500 text-sm">
+                                                {new Date(contact.created_at).toLocaleDateString()}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

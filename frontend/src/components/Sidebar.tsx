@@ -12,7 +12,8 @@ import {
     LogOut,
     User,
     Calendar,
-    X
+    X,
+    Banknote
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const navItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Transactions', href: '/dashboard/transactions', icon: Banknote },
         { name: 'Properties', href: '/dashboard/properties', icon: Building2 },
         { name: 'Contacts', href: '/dashboard/contacts', icon: User },
         { name: 'Deals', href: '/dashboard/deals', icon: Briefcase },

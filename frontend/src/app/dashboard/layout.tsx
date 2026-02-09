@@ -30,6 +30,7 @@ export default function DashboardLayout({
     const getPageTitle = () => {
         const navItems = [
             { name: 'Dashboard', href: '/dashboard' },
+            { name: 'Transactions', href: '/dashboard/transactions' },
             { name: 'Properties', href: '/dashboard/properties' },
             { name: 'Contacts', href: '/dashboard/contacts' },
             { name: 'Deals', href: '/dashboard/deals' },
