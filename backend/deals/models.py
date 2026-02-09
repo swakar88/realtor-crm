@@ -7,8 +7,9 @@ from transactions.models import Contact
 
 class Deal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True, null=True)
     contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, related_name='deals')
+    property = models.ForeignKey('transactions.Property', on_delete=models.SET_NULL, null=True, related_name='deals')
     
     STAGE_CHOICES = [
         ('NEW', 'New'),
@@ -26,4 +27,4 @@ class Deal(models.Model):
 
     def __str__(self):
         client = f"{self.contact.first_name} {self.contact.last_name}" if self.contact else "Unknown Client"
-        return f"{self.title} - {client}"
+        return f"{self.title if self.title else 'Untitled Deal'} - {client}"

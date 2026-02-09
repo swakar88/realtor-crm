@@ -13,7 +13,8 @@ import {
     User,
     Calendar,
     X,
-    Banknote
+    Banknote,
+    ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,7 +25,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const pathname = usePathname();
 
     const navItems = [
@@ -36,6 +37,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
         { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ];
+
+    if (user?.is_superuser) {
+        navItems.splice(1, 0, { name: 'Admin Dashboard', href: '/dashboard/admin', icon: ShieldCheck });
+    }
 
     return (
         <aside

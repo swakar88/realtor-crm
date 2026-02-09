@@ -9,6 +9,9 @@ class BaseTransactionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):        
         user = self.request.user
+        if user.is_superuser:
+            return self.queryset.all()
+            
         if not hasattr(user, 'organization') or not user.organization:
             # Return empty queryset if no active organization
             return self.queryset.none()

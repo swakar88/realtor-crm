@@ -23,6 +23,10 @@ class TransactionSerializer(serializers.ModelSerializer):
     type_name = serializers.CharField(source='type.name', read_only=True)
     status_name = serializers.CharField(source='status.name', read_only=True)
     property_address = serializers.CharField(source='property.address', read_only=True)
+    contact_name = serializers.SerializerMethodField()
+    
+    def get_contact_name(self, obj):
+        return f"{obj.contact.first_name} {obj.contact.last_name}"
 
     class Meta:
         model = Transaction

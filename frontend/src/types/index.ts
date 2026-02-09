@@ -25,10 +25,12 @@ export interface Contact {
 
 export interface Deal {
     id: number;
-    name: string;
+    title?: string;
     property: number;
+    property_address?: string;
     contact: number;
-    stage: 'Prospect' | 'Active' | 'Under Contract' | 'Closed Won' | 'Closed Lost';
+    client_name?: string;
+    stage: 'NEW' | 'NEGOTIATION' | 'UNDER_CONTRACT' | 'CLOSED_WON' | 'CLOSED_LOST';
     value: number;
     close_date: string;
 }

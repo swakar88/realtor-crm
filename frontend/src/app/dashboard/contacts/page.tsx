@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { Loader2, Search, User, Phone, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { AddContactModal } from '@/components/dashboard/AddContactModal';
 import {
     Table,
     TableBody,
@@ -47,7 +49,7 @@ export default function ContactsPage() {
                     // and included in project urls via path('api/', include('transactions.urls')) ?
                     // Wait, transactions/urls.py has router.register(r'contacts'). 
                     // If included at /api/, then it is /api/contacts/
-                    const res = await api.get('/api/contacts/');
+                    const res = await api.get('/contacts/');
                     setContacts(res.data);
                 } catch (error) {
                     console.error("Failed to fetch contacts", error);
@@ -77,14 +79,19 @@ export default function ContactsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">Contacts</h1>
-                <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                    <Input
-                        placeholder="Search contacts..."
-                        className="pl-8 bg-white"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                        <Input
+                            placeholder="Search contacts..."
+                            className="pl-8 bg-white"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <AddContactModal onSuccess={() => {
+                        window.location.reload();
+                    }} />
                 </div>
             </div>
 
@@ -152,6 +159,6 @@ export default function ContactsPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }

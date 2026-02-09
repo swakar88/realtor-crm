@@ -54,7 +54,7 @@ export function AddDealModal({ onSuccess }: AddDealModalProps) {
     useEffect(() => {
         const fetchContacts = async () => {
             try {
-                const res = await api.get('/api/contacts/');
+                const res = await api.get('/contacts/');
                 setContacts(res.data);
             } catch (error) {
                 console.error("Failed to fetch contacts", error);
@@ -87,7 +87,7 @@ export function AddDealModal({ onSuccess }: AddDealModalProps) {
                 closing_date: values.closing_date || null
             };
 
-            await api.post('/api/deals/', payload);
+            await api.post('/deals/', payload);
             toast.success('Deal created successfully');
             setOpen(false);
             form.reset();

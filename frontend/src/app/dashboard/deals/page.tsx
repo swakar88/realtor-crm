@@ -33,7 +33,7 @@ export default function DealsPage() {
         try {
             // Parallel fetch to resolve IDs
             const [dealsRes, propsRes, contactsRes] = await Promise.all([
-                api.get('/transactions/'),
+                api.get('/deals/'),
                 api.get('/properties/'),
                 api.get('/contacts/')
             ]);
@@ -63,11 +63,11 @@ export default function DealsPage() {
 
     const getStageColor = (stage: string) => {
         switch (stage) {
-            case 'Prospect': return 'secondary';
-            case 'Active': return 'default'; // blue/black
-            case 'Under Contract': return 'warning'; // map to yellow if custom, else default
-            case 'Closed Won': return 'success'; // map to green
-            case 'Closed Lost': return 'destructive'; // red
+            case 'NEW': return 'secondary';
+            case 'NEGOTIATION': return 'default'; // blue/black
+            case 'UNDER_CONTRACT': return 'outline'; // map to yellow if custom, else default
+            case 'CLOSED_WON': return 'default'; // map to green
+            case 'CLOSED_LOST': return 'destructive'; // red
             default: return 'outline';
         }
     };
@@ -123,18 +123,18 @@ export default function DealsPage() {
                             deals.map((deal) => (
                                 <TableRow key={deal.id} className="cursor-pointer hover:bg-slate-50">
                                     <TableCell>
-                                        <Badge variant={(getStageColor(deal.stage) === 'success' || getStageColor(deal.stage) === 'warning') ? 'default' : getStageColor(deal.stage) as any} className={
-                                            deal.stage === 'Closed Won' ? 'bg-green-600 hover:bg-green-700' :
-                                                deal.stage === 'Under Contract' ? 'bg-amber-500 hover:bg-amber-600' : ''
+                                        <Badge variant={getStageColor(deal.stage) as any} className={
+                                            deal.stage === 'CLOSED_WON' ? 'bg-green-600 hover:bg-green-700' :
+                                                deal.stage === 'UNDER_CONTRACT' ? 'bg-amber-500 hover:bg-amber-600' : ''
                                         }>
-                                            {deal.stage}
+                                            {deal.stage.replace('_', ' ')}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                        {getPropertyAddress(deal.property)}
+                                        {deal.property_address || getPropertyAddress(deal.property)}
                                     </TableCell>
                                     <TableCell>
-                                        {getContactName(deal.contact)}
+                                        {deal.client_name || getContactName(deal.contact)}
                                     </TableCell>
                                     <TableCell className="font-mono">
                                         {formatCurrency(deal.value)}

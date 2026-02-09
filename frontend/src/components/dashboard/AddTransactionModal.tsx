@@ -38,9 +38,10 @@ const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
     property: z.string().min(1, "Property is required"),
     contact: z.string().min(1, "Contact is required"),
-    stage: z.enum(['Prospect', 'Active', 'Under Contract', 'Closed Won', 'Closed Lost']),
-    value: z.union([z.string(), z.number()]),
-    close_date: z.string().optional(),
+    stage: z.string().default('Prospect'),
+    detailed_status: z.string(),
+    value: z.coerce.number(), // Use coerce to handle string inputs automatically
+    close_date: z.string(),
 });
 
 type TransactionFormValues = z.infer<typeof formSchema>;
@@ -59,8 +60,8 @@ export function AddTransactionModal({ onSuccess }: AddTransactionModalProps) {
         const fetchData = async () => {
             try {
                 const [contactsRes, propertiesRes] = await Promise.all([
-                    api.get('/api/contacts/'),
-                    api.get('/api/properties/')
+                    api.get('/contacts/'),
+                    api.get('/properties/')
                 ]);
                 setContacts(contactsRes.data);
                 setProperties(propertiesRes.data);
@@ -73,24 +74,24 @@ export function AddTransactionModal({ onSuccess }: AddTransactionModalProps) {
         }
     }, [open]);
 
-    const form = useForm<TransactionFormValues>({
+    const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: '',
             property: '',
             contact: '',
             stage: 'Prospect',
+            detailed_status: '',
             value: 0,
             close_date: '',
         },
     });
 
-    async function onSubmit(values: TransactionFormValues) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
             const payload = {
                 ...values,
-                value: Number(values.value),
                 close_date: values.close_date || null
             };
             await api.post('/transactions/', payload); // url might be /api/transactions/transactions/ depending on router?
@@ -208,7 +209,7 @@ export function AddTransactionModal({ onSuccess }: AddTransactionModalProps) {
                                     <FormItem>
                                         <FormLabel>Value ($)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} />
+                                            <Input type="number" {...field} value={field.value as number} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -217,24 +218,13 @@ export function AddTransactionModal({ onSuccess }: AddTransactionModalProps) {
 
                             <FormField
                                 control={form.control}
-                                name="stage"
+                                name="detailed_status"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Stage</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Stage" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="Prospect">Prospect</SelectItem>
-                                                <SelectItem value="Active">Active</SelectItem>
-                                                <SelectItem value="Under Contract">Under Contract</SelectItem>
-                                                <SelectItem value="Closed Won">Closed Won</SelectItem>
-                                                <SelectItem value="Closed Lost">Closed Lost</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <FormLabel>Status</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. Escrow, Negotiation" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -246,7 +236,7 @@ export function AddTransactionModal({ onSuccess }: AddTransactionModalProps) {
                             name="close_date"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Close Date</FormLabel>
+                                    <FormLabel>Transaction Date</FormLabel>
                                     <FormControl>
                                         <Input type="date" {...field} />
                                     </FormControl>

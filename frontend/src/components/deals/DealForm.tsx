@@ -36,9 +36,10 @@ import {
 } from "@/components/ui/sheet"
 
 const dealSchema = z.object({
+    title: z.string().optional(),
     property: z.coerce.number().min(1, "Property is required"),
     contact: z.coerce.number().min(1, "Client is required"),
-    stage: z.enum(['Prospect', 'Active', 'Under Contract', 'Closed Won', 'Closed Lost']),
+    stage: z.enum(['NEW', 'NEGOTIATION', 'UNDER_CONTRACT', 'CLOSED_WON', 'CLOSED_LOST']),
     value: z.coerce.number().min(0, "Value must be positive"),
     close_date: z.string().optional(),
 });
@@ -76,7 +77,8 @@ export function DealForm({ onSuccess }: DealFormProps) {
     const form = useForm<z.infer<typeof dealSchema>>({
         resolver: zodResolver(dealSchema) as any,
         defaultValues: {
-            stage: 'Prospect',
+            title: '',
+            stage: 'NEW',
             value: 0,
             close_date: '',
             property: 0,
@@ -88,12 +90,19 @@ export function DealForm({ onSuccess }: DealFormProps) {
         setIsLoading(true);
         try {
             // Allow user to clear close_date if empty string? Zod optional handles it usually but API might need null
+            // Map form values to API expected keys
             const payload = {
                 ...values,
+                property_id: values.property,
+                contact_id: values.contact,
                 close_date: values.close_date || null
             };
+            // Remove original keys if needed, but keeping them might be harmless if API ignores unknown fields. 
+            // Better to be clean.
+            delete (payload as any).property;
+            delete (payload as any).contact;
 
-            await api.post('/transactions/', payload);
+            await api.post('/deals/', payload);
             toast.success('Deal created successfully');
             setOpen(false);
             form.reset();
@@ -188,13 +197,27 @@ export function DealForm({ onSuccess }: DealFormProps) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="Prospect">Prospect</SelectItem>
-                                                <SelectItem value="Active">Active</SelectItem>
-                                                <SelectItem value="Under Contract">Under Contract</SelectItem>
-                                                <SelectItem value="Closed Won">Closed Won</SelectItem>
-                                                <SelectItem value="Closed Lost">Closed Lost</SelectItem>
+                                                <SelectItem value="NEW">New</SelectItem>
+                                                <SelectItem value="NEGOTIATION">Negotiation</SelectItem>
+                                                <SelectItem value="UNDER_CONTRACT">Under Contract</SelectItem>
+                                                <SelectItem value="CLOSED_WON">Closed Won</SelectItem>
+                                                <SelectItem value="CLOSED_LOST">Closed Lost</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Deal Title (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. 123 Main St - Sale" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
