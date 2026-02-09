@@ -7,10 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Plus, Trash2, CheckSquare } from 'lucide-react';
-import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
-export function TodoWidget() {
+export function TodoWidget({ className }: { className?: string }) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [newTask, setNewTask] = useState('');
     const [loading, setLoading] = useState(true);
@@ -78,7 +77,7 @@ export function TodoWidget() {
     };
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className={cn("h-full flex flex-col", className)}>
             <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center">
                     <CheckSquare className="mr-2 h-4 w-4" />

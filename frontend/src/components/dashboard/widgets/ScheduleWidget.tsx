@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Phone, Users, Mail, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Event {
     id: number;
@@ -13,9 +13,10 @@ interface Event {
 
 interface ScheduleWidgetProps {
     events?: Event[];
+    className?: string;
 }
 
-export function ScheduleWidget({ events = [] }: ScheduleWidgetProps) {
+export function ScheduleWidget({ events = [], className }: ScheduleWidgetProps) {
 
     const getIcon = (type: string) => {
         switch (type) {
@@ -34,7 +35,7 @@ export function ScheduleWidget({ events = [] }: ScheduleWidgetProps) {
     };
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className={cn("h-full flex flex-col", className)}>
             <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center">
                     <Clock className="mr-2 h-4 w-4" />
