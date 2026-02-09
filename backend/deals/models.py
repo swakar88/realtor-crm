@@ -3,10 +3,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+from transactions.models import Contact
+
 class Deal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    client_name = models.CharField(max_length=255)
+    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, null=True, related_name='deals')
     
     STAGE_CHOICES = [
         ('NEW', 'New'),

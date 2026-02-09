@@ -20,10 +20,14 @@ class PropertySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 class TransactionSerializer(serializers.ModelSerializer):
+    type_name = serializers.CharField(source='type.name', read_only=True)
+    status_name = serializers.CharField(source='status.name', read_only=True)
+    property_address = serializers.CharField(source='property.address', read_only=True)
+
     class Meta:
         model = Transaction
-        fields = ['id', 'name', 'property', 'contact', 'type', 'status', 'stage', 'value', 'close_date', 'commission_rate', 'is_archived', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'organization', 'name', 'property', 'property_address', 'contact', 'contact_name', 'type', 'type_name', 'status', 'status_name', 'stage', 'value', 'close_date', 'commission_rate', 'detailed_status', 'property_type', 'is_archived', 'created_at']
+        read_only_fields = ['organization', 'created_at']
         extra_kwargs = {
             'type': {'required': False},
             'status': {'required': False},

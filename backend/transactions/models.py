@@ -78,6 +78,11 @@ class Transaction(models.Model):
     close_date = models.DateField(null=True, blank=True)
     
     commission_rate = models.DecimalField(max_digits=5, decimal_places=2, help_text="Percentage (e.g. 2.50)", default=2.5)
+    
+    # User requested fields
+    detailed_status = models.CharField(max_length=100, blank=True, null=True, help_text="Specific status details")
+    property_type = models.CharField(max_length=50, choices=Property.PROPERTY_TYPE_CHOICES, blank=True, null=True)
+
     is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
