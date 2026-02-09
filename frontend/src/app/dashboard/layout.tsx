@@ -1,7 +1,6 @@
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
+import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -9,93 +8,69 @@ import {
     Building2,
     Briefcase,
     Settings,
-    LogOut,
     User,
-    Calendar
+    Calendar,
+    Menu
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Ensure this exists or import from source
 import { cn } from '@/lib/utils';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
+import { Sidebar } from '@/components/Sidebar';
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const navItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Properties', href: '/dashboard/properties', icon: Building2 },
-        { name: 'Contacts', href: '/dashboard/contacts', icon: User },
-        { name: 'Deals', href: '/dashboard/deals', icon: Briefcase },
-        { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
-        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-    ];
+    // Helper to get current page title (duplicate logic, but needed for header)
+    const getPageTitle = () => {
+        const navItems = [
+            { name: 'Dashboard', href: '/dashboard' },
+            { name: 'Properties', href: '/dashboard/properties' },
+            { name: 'Contacts', href: '/dashboard/contacts' },
+            { name: 'Deals', href: '/dashboard/deals' },
+            { name: 'Calendar', href: '/dashboard/calendar' },
+            { name: 'Settings', href: '/dashboard/settings' },
+        ];
+        return navItems.find(item => item.href === pathname)?.name || 'Dashboard';
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50">
+            {/* Mobile Backdrop */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 ease-in-out">
-                <div className="flex h-16 items-center px-6 border-b border-slate-800">
-                    <span className="text-xl font-bold tracking-tight">RealtorCRM</span>
-                </div>
-
-                <nav className="flex-1 px-4 py-6 space-y-1">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-slate-400 hover:text-white hover:bg-slate-800"
-                                )}
-                            >
-                                <Icon className="mr-3 h-5 w-5" />
-                                {item.name}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-4 border-t border-slate-800">
-                    <Button
-                        variant="ghost"
-                        className="w-full justify-start text-slate-400 hover:text-red-400 hover:bg-slate-800"
-                        onClick={logout}
-                    >
-                        <LogOut className="mr-3 h-5 w-5" />
-                        Sign Out
-                    </Button>
-                </div>
-            </aside>
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content */}
-            <main className="flex-1 pl-64 transition-all duration-300">
+            <main className="flex-1 md:pl-64 transition-all duration-300 min-h-screen flex flex-col">
                 {/* Header */}
-                <header className="sticky top-0 z-40 bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 shadow-sm">
-                    <h1 className="text-lg font-semibold text-slate-800">
-                        {navItems.find(item => item.href === pathname)?.name || 'Dashboard'}
-                    </h1>
+                <header className="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="md:hidden"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <Menu className="h-6 w-6 text-slate-600" />
+                        </Button>
+                        <h1 className="text-lg font-semibold text-slate-800">
+                            {getPageTitle()}
+                        </h1>
+                    </div>
 
                     <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-slate-600">
+                        <span className="hidden md:inline text-sm font-medium text-slate-600">
                             Welcome, {user?.first_name || user?.username || 'Agent'}
                         </span>
                         <div className="bg-primary/10 p-2 rounded-full">
@@ -105,10 +80,11 @@ export default function DashboardLayout({
                 </header>
 
                 {/* Page Content */}
-                <div className="p-8 max-w-7xl mx-auto">
+                <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
                     {children}
                 </div>
             </main>
         </div>
     );
 }
+
